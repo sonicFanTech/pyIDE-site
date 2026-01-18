@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="SFT PyIDE — a lightweight, tab-based Python IDE with interpreter selection, run output panel, external console modes, and a built-in PyInstaller compiler window." />
+  <title>SFT PyIDE — Lightweight Python IDE</title>
+
+  <meta property="og:title" content="SFT PyIDE — Lightweight Python IDE" />
+  <meta property="og:description" content="Tabbed editor • Interpreter manager • Run inside PyIDE or in external console • Built-in PyInstaller compiler • Settings + autosave." />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root{
+      --bg: #0b0f14;
+      --panel: #0f1621;
+      --panel2: #0c121b;
+      --text: #e7eef7;
+      --muted: #a9b6c6;
+      --line: rgba(255,255,255,.10);
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+      --radius: 18px;
+      --max: 1100px;
+
+      --brand: #6aa9ff;
+      --brand2: #9b7bff;
+      --ok: #52d7a8;
+      --warn: #ffcc66;
+    }
+    [data-theme="light"]{
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --panel2: #f1f5fb;
+      --text: #0e1621;
+      --muted: #445468;
+      --line: rgba(14,22,33,.12);
+      --shadow: 0 12px 40px rgba(14,22,33,.12);
+      --brand: #2b6bff;
+      --brand2: #6d43ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      background: radial-gradient(1200px 700px at 15% -10%, rgba(106,169,255,.22), transparent 55%),
+                  radial-gradient(900px 600px at 95% 0%, rgba(155,123,255,.18), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    a{color:inherit}
+    .wrap{max-width:var(--max); margin:0 auto; padding:28px 18px 80px}
+    .nav{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      background: color-mix(in oklab, var(--bg) 80%, transparent);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner{
+      max-width:var(--max);
+      margin:0 auto;
+      padding: 12px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .dot{
+      width:12px; height:12px; border-radius: 999px;
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      box-shadow: 0 0 0 6px color-mix(in oklab, var(--brand) 15%, transparent);
+    }
+    .nav a{ text-decoration:none; }
+    .navlinks{
+      display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .navlinks a:hover{color:var(--text)}
+    .btn{
+      appearance:none;
+      border: 1px solid var(--line);
+      background: color-mix(in oklab, var(--panel) 88%, transparent);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: var(--shadow);
+      cursor:pointer;
+    }
+    .btn.primary{
+      border-color: color-mix(in oklab, var(--brand) 55%, var(--line));
+      background: linear-gradient(135deg, color-mix(in oklab, var(--brand) 28%, var(--panel)), color-mix(in oklab, var(--brand2) 20%, var(--panel)));
+    }
+    .btn:hover{transform: translateY(-1px)}
+    .btn:active{transform: translateY(0)}
+    .hero{
+      padding: 34px 0 10px;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 900px){
+      .hero{grid-template-columns:1fr; padding-top:22px}
+    }
+    .card{
+      background: color-mix(in oklab, var(--panel) 92%, transparent);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-main{padding: 26px}
+    .kicker{
+      display:inline-flex; gap:10px; align-items:center;
+      font-weight: 800;
+      color: color-mix(in oklab, var(--brand) 80%, var(--text));
+      letter-spacing: .2px;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    h1{
+      margin: 10px 0 10px;
+      font-size: clamp(30px, 4vw, 44px);
+      line-height: 1.08;
+      letter-spacing: -0.6px;
+    }
+    .lead{
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .cta{display:flex; gap:12px; flex-wrap:wrap; margin-top: 16px}
+    .mini{
+      padding: 22px;
+      display:grid;
+      gap: 12px;
+    }
+    .mini .stat{
+      padding: 14px;
+      border-radius: 14px;
+      background: color-mix(in oklab, var(--panel2) 94%, transparent);
+      border: 1px solid var(--line);
+    }
+    .stat .t{font-weight:900}
+    .stat .d{color:var(--muted); font-size: 14px; margin-top: 3px}
+    .pillrow{display:flex; gap:8px; flex-wrap:wrap; margin-top: 12px}
+    .pill{
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: color-mix(in oklab, var(--muted) 90%, var(--text));
+      background: color-mix(in oklab, var(--panel2) 92%, transparent);
+    }
+
+    section{margin-top: 22px}
+    .section-head{
+      display:flex; align-items:end; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin: 26px 0 12px;
+    }
+    .section-head h2{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: -0.2px;
+    }
+    .section-head p{margin:0; color:var(--muted)}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr 1fr} }
+    @media (max-width: 560px){ .grid{grid-template-columns:1fr} }
+    .feature{
+      padding: 16px;
+      border-radius: 16px;
+      background: color-mix(in oklab, var(--panel2) 94%, transparent);
+      border: 1px solid var(--line);
+    }
+    .feature h3{
+      margin: 0 0 6px;
+      font-size: 15px;
+      letter-spacing: -.1px;
+    }
+    .feature p{margin:0; color:var(--muted); font-size: 14px}
+
+    .gallery{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px){ .gallery{grid-template-columns:1fr 1fr} }
+    @media (max-width: 560px){ .gallery{grid-template-columns:1fr} }
+    figure{
+      margin:0;
+      border-radius: 16px;
+      overflow:hidden;
+      border: 1px solid var(--line);
+      background: color-mix(in oklab, var(--panel2) 94%, transparent);
+      cursor: zoom-in;
+      box-shadow: var(--shadow);
+    }
+    figure img{width:100%; height:auto; display:block}
+    figcaption{
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+    }
+    .cols{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 900px){ .cols{grid-template-columns:1fr} }
+    .box{padding: 18px}
+    .box h3{margin:0 0 8px; font-size: 16px}
+    .box p{margin:0; color:var(--muted)}
+    .code{
+      margin-top: 10px;
+      background: color-mix(in oklab, var(--panel2) 94%, transparent);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      overflow:auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      color: color-mix(in oklab, var(--text) 85%, white);
+      white-space: pre;
+    }
+    .list{
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .list li{margin: 6px 0}
+    .faq details{
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: color-mix(in oklab, var(--panel2) 94%, transparent);
+      padding: 14px 16px;
+      margin: 10px 0;
+    }
+    .faq summary{
+      cursor:pointer;
+      font-weight: 900;
+      list-style: none;
+    }
+    .faq summary::-webkit-details-marker{display:none}
+    .faq .ans{color:var(--muted); margin-top: 8px; font-size: 14px}
+    footer{
+      margin-top: 34px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      display:flex;
+      justify-content:space-between;
+      gap: 12px;
+      flex-wrap:wrap;
+    }
+
+    /* Lightbox */
+    .lightbox{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.72);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .lightbox.open{display:flex}
+    .lightbox .frame{
+      max-width: min(1100px, 96vw);
+      max-height: 88vh;
+      border-radius: 16px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 25px 90px rgba(0,0,0,.55);
+      background: #0b0f14;
+    }
+    .lightbox img{
+      max-width: 100%;
+      max-height: 88vh;
+      display:block;
+    }
+    .lightbox .bar{
+      display:flex; justify-content:space-between; align-items:center;
+      padding: 10px 12px;
+      color: rgba(255,255,255,.9);
+      font-size: 13px;
+      background: rgba(0,0,0,.35);
+      border-top: 1px solid rgba(255,255,255,.12);
+    }
+    .xbtn{
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.18);
+      color: rgba(255,255,255,.92);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="SFT PyIDE Home">
+        <span class="dot" aria-hidden="true"></span>
+        <span>SFT PyIDE</span>
+      </a>
+
+      <nav class="navlinks" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="#download">Download</a>
+        <a href="#faq">FAQ</a>
+        <button id="themeBtn" class="btn" type="button" title="Toggle theme">Theme</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top" class="wrap">
+    <div class="hero">
+      <div class="card hero-main">
+        <div class="kicker">
+          <span class="pill" style="border-color: color-mix(in oklab, var(--brand) 35%, var(--line)); color: color-mix(in oklab, var(--brand) 70%, var(--text));">Windows</span>
+          <span class="pill" style="border-color: color-mix(in oklab, var(--ok) 40%, var(--line)); color: color-mix(in oklab, var(--ok) 70%, var(--text));">PySide6</span>
+          <span class="pill">Tabbed IDE</span>
+        </div>
+
+        <h1>Lightweight Python IDE with the tools you actually use.</h1>
+        <p class="lead">
+          SFT PyIDE is a clean, tab-based Python IDE with a project file tree, recent files, autosave, interpreter selection, and two run modes (inside PyIDE or in a real external console).
+        </p>
+
+        <div class="cta" id="download">
+          <a class="btn primary" href="https://github.com/sonicFanTech/pyIDE/releases" target="_blank" rel="noreferrer">Download (GitHub Releases)</a>
+          <a class="btn" href="https://github.com/sonicFanTech/pyIDE" target="_blank" rel="noreferrer">View Source on GitHub</a>
+          <a class="btn" href="#quickstart">Quick Start</a>
+        </div>
+
+        <div class="pillrow" aria-label="Highlights">
+          <span class="pill">Run inside IDE or external console</span>
+          <span class="pill">Interpreter manager</span>
+          <span class="pill">Built-in PyInstaller compiler window</span>
+          <span class="pill">Dark/Light themes + settings</span>
+        </div>
+      </div>
+
+      <aside class="card mini" aria-label="At a glance">
+        <div class="stat">
+          <div class="t">Two Run Modes</div>
+          <div class="d">Run in the output panel, or launch a real terminal for CLI/curses apps.</div>
+        </div>
+        <div class="stat">
+          <div class="t">Interpreter Manager</div>
+          <div class="d">Pick which Python runs your script. Add/remove/re-discover interpreters.</div>
+        </div>
+        <div class="stat">
+          <div class="t">Developer Tools</div>
+          <div class="d">Syntax check (py_compile) + a built-in PyInstaller compiler window.</div>
+        </div>
+        <div class="stat">
+          <div class="t">Settings + Autosave</div>
+          <div class="d">Theme, autosave interval, recent limit, autocomplete, external console defaults.</div>
+        </div>
+      </aside>
+    </div>
+
+    <section id="features">
+      <div class="section-head">
+        <div>
+          <h2>Everything PyIDE has & can do</h2>
+          <p>Full feature list (in plain English).</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="feature">
+          <h3>Tabbed code editor</h3>
+          <p>Open multiple .py files at once. Unsaved tabs show a “*” indicator. Supports new/untitled files.</p>
+        </div>
+        <div class="feature">
+          <h3>Line numbers</h3>
+          <p>A line-number gutter makes it easy to track code locations and errors.</p>
+        </div>
+        <div class="feature">
+          <h3>Find + replace</h3>
+          <p>Ctrl+F and Ctrl+H, find next/prev, replace, replace all.</p>
+        </div>
+        <div class="feature">
+          <h3>Project file manager (dockable)</h3>
+          <p>Folder tree for a project root with right-click actions (new, rename, delete, open in Explorer). Hide/show anytime.</p>
+        </div>
+        <div class="feature">
+          <h3>Recent files</h3>
+          <p>File → Recent Files list with a configurable limit and “Clear Recent Files”.</p>
+        </div>
+        <div class="feature">
+          <h3>Auto-save</h3>
+          <p>Auto-saves open files on an interval (default 45 seconds). Can be disabled/changed. Saves only files with a path.</p>
+        </div>
+        <div class="feature">
+          <h3>Dark mode + light mode</h3>
+          <p>Dark mode by default, switch themes in Settings.</p>
+        </div>
+        <div class="feature">
+          <h3>Python interpreter manager</h3>
+          <p>Choose which Python runs your script. Add/remove/re-discover interpreter paths.</p>
+        </div>
+        <div class="feature">
+          <h3>Run inside PyIDE</h3>
+          <p>Output goes to the Run Output panel, includes stdin input, and a Stop button (Shift+F5).</p>
+        </div>
+        <div class="feature">
+          <h3>Run in external console</h3>
+          <p>Best for CLI/curses apps. Choose cmd, PowerShell, pwsh, Windows Terminal variants, or custom consoles.</p>
+        </div>
+        <div class="feature">
+          <h3>Autocomplete</h3>
+          <p>Ctrl+Space completion. Optional Jedi support for smarter suggestions.</p>
+        </div>
+        <div class="feature">
+          <h3>Syntax check + compiler window</h3>
+          <p>Quick py_compile syntax check (Ctrl+K) and a built-in PyInstaller compiler window.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenshots">
+      <div class="section-head">
+        <div>
+          <h2>Screenshots</h2>
+          <p>Click any image to zoom.</p>
+        </div>
+      </div>
+
+      <div class="gallery">
+        <figure data-full="assets/screenshots/main.png" data-cap="Main window (tabs, project tree, run output panel)">
+          <img src="assets/screenshots/main.png" alt="PyIDE main window" loading="lazy">
+          <figcaption>Main window</figcaption>
+        </figure>
+
+        <figure data-full="assets/screenshots/line-numbers.png" data-cap="Line numbers in the editor">
+          <img src="assets/screenshots/line-numbers.png" alt="Line numbers in PyIDE" loading="lazy">
+          <figcaption>Line numbers</figcaption>
+        </figure>
+
+        <figure data-full="assets/screenshots/find-replace.png" data-cap="Find / Replace dialog">
+          <img src="assets/screenshots/find-replace.png" alt="Find replace dialog" loading="lazy">
+          <figcaption>Find + Replace</figcaption>
+        </figure>
+
+        <figure data-full="assets/screenshots/project-manager.png" data-cap="Project file manager with right-click actions">
+          <img src="assets/screenshots/project-manager.png" alt="Project manager menu" loading="lazy">
+          <figcaption>Project manager</figcaption>
+        </figure>
+
+        <figure data-full="assets/screenshots/recent-files.png" data-cap="Recent Files menu">
+          <img src="assets/screenshots/recent-files.png" alt="Recent files menu" loading="lazy">
+          <figcaption>Recent files</figcaption>
+        </figure>
+
+        <figure data-full="assets/screenshots/interpreter-manager.png" data-cap="Interpreter selection dropdown">
+          <img src="assets/screenshots/interpreter-manager.png" alt="Interpreter selection" loading="lazy">
+          <figcaption>Interpreter manager</figcaption>
+        </figure>
+
+        <figure data-full="assets/screenshots/external-console.png" data-cap="External console selection menu">
+          <img src="assets/screenshots/external-console.png" alt="External console selection" loading="lazy">
+          <figcaption>External console</figcaption>
+        </figure>
+
+        <figure data-full="assets/screenshots/compiler.png" data-cap="Built-in PyInstaller compiler window">
+          <img src="assets/screenshots/compiler.png" alt="PyInstaller compiler window" loading="lazy">
+          <figcaption>Compiler (PyInstaller)</figcaption>
+        </figure>
+
+        <figure data-full="assets/screenshots/settings.png" data-cap="Settings window (theme, autosave, recent files, autocomplete)">
+          <img src="assets/screenshots/settings.png" alt="Settings window" loading="lazy">
+          <figcaption>Settings</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="quickstart" class="cols">
+      <div class="card box">
+        <h3>Quick Start (from source)</h3>
+        <p>Install dependencies, then run the script.</p>
+        <div class="code">pip install PySide6
+python PyIDE.py</div>
+        <ul class="list">
+          <li>Optional: <b>Jedi</b> for smarter autocomplete: <code>pip install jedi</code></li>
+          <li>Optional: <b>PyInstaller</b> if you want to build EXEs: <code>pip install pyinstaller</code></li>
+        </ul>
+      </div>
+
+      <div class="card box">
+        <h3>Requirements</h3>
+        <p>Recommended environment.</p>
+        <ul class="list">
+          <li>Windows 10 or Windows 11</li>
+          <li>At least one Python interpreter installed (python.exe)</li>
+          <li>PySide6</li>
+          <li>Optional: Windows Terminal for wt console options</li>
+        </ul>
+
+        <h3 style="margin-top:14px">Settings file</h3>
+        <p>PyIDE stores settings/recent files in <code>pyide_config.json</code>.</p>
+        <ul class="list">
+          <li>Tries the same folder as the EXE first</li>
+          <li>If not writable (ex: Program Files), falls back to <code>%LOCALAPPDATA%\SFT_PyIDE\pyide_config.json</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="shortcuts" class="card box">
+      <h3>Keyboard shortcuts</h3>
+      <div class="cols">
+        <div>
+          <div class="code">File
+Ctrl+N  New
+Ctrl+O  Open
+Ctrl+S  Save
+Ctrl+Shift+S  Save As</div>
+        </div>
+        <div>
+          <div class="code">Edit
+Ctrl+F  Find
+Ctrl+H  Replace
+
+Run
+F5      Run
+Ctrl+F5 Run in External Console
+Shift+F5 Stop
+
+Tools
+Ctrl+K  Check Syntax (py_compile)</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="faq">
+      <div class="section-head">
+        <div>
+          <h2>FAQ</h2>
+          <p>Common questions.</p>
+        </div>
+      </div>
+
+      <details open>
+        <summary>My program uses curses / needs a real console. What should I use?</summary>
+        <div class="ans">
+          Use <b>Run in External Console</b>. It launches your script in a real terminal window (cmd/PowerShell/pwsh/Windows Terminal/custom).
+        </div>
+      </details>
+
+      <details>
+        <summary>Does PyIDE support multiple Python installs?</summary>
+        <div class="ans">
+          Yes — you can select an interpreter per run, and add/remove/re-discover interpreter paths in the tools menu.
+        </div>
+      </details>
+
+      <details>
+        <summary>Where are my settings saved?</summary>
+        <div class="ans">
+          In <code>pyide_config.json</code>. PyIDE tries next to the EXE first, then falls back to <code>%LOCALAPPDATA%\SFT_PyIDE</code> if needed.
+        </div>
+      </details>
+    </section>
+
+    <footer>
+      <div>© <span id="year"></span> sonicFanTech — SFT PyIDE</div>
+      <div>
+        <a href="https://github.com/sonicFanTech/pyIDE" target="_blank" rel="noreferrer">GitHub</a>
+        &nbsp;•&nbsp;
+        <a href="https://github.com/sonicFanTech/pyIDE/releases" target="_blank" rel="noreferrer">Releases</a>
+        &nbsp;•&nbsp;
+        <a href="#top">Back to top</a>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <div class="frame" role="dialog" aria-modal="true" aria-label="Screenshot viewer">
+      <img id="lightboxImg" src="" alt="" />
+      <div class="bar">
+        <div id="lightboxCap"></div>
+        <button class="xbtn" id="lightboxClose" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme
+    const key = "pyide_site_theme";
+    const btn = document.getElementById("themeBtn");
+    const saved = localStorage.getItem(key);
+    if(saved){ document.documentElement.setAttribute("data-theme", saved); }
+    btn.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme") || "dark";
+      const next = cur === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem(key, next);
+    });
+
+    // Year
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Lightbox
+    const lb = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lightboxImg");
+    const lbCap = document.getElementById("lightboxCap");
+    const closeBtn = document.getElementById("lightboxClose");
+
+    function openLB(src, cap, alt){
+      lb.classList.add("open");
+      lb.setAttribute("aria-hidden", "false");
+      lbImg.src = src;
+      lbImg.alt = alt || "Screenshot";
+      lbCap.textContent = cap || "";
+    }
+    function closeLB(){
+      lb.classList.remove("open");
+      lb.setAttribute("aria-hidden", "true");
+      lbImg.src = "";
+      lbImg.alt = "";
+      lbCap.textContent = "";
+    }
+
+    document.querySelectorAll("figure[data-full]").forEach(fig => {
+      fig.addEventListener("click", () => {
+        openLB(fig.dataset.full, fig.dataset.cap, fig.querySelector("img")?.alt);
+      });
+    });
+
+    closeBtn.addEventListener("click", closeLB);
+    lb.addEventListener("click", (e) => { if(e.target === lb) closeLB(); });
+    window.addEventListener("keydown", (e) => { if(e.key === "Escape") closeLB(); });
+
+    // Smooth scroll for in-page links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener("click", (e) => {
+        const id = a.getAttribute("href");
+        if(!id || id === "#") return;
+        const el = document.querySelector(id);
+        if(el){
+          e.preventDefault();
+          el.scrollIntoView({behavior:"smooth", block:"start"});
+        }
+      });
+    });
+  </script>
+</body>
+</html>
