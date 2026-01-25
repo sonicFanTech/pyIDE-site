@@ -714,21 +714,21 @@ Ctrl+K  Check Syntax (py_compile)</div>
     const REL_TAG = "v1.2.0";
     const GH_BASE = `https://github.com/sonicFanTech/pyIDE/releases/download/${REL_TAG}/`;
 
-    // Filenames as uploaded to the release assets (spaces are OK; we URL-encode them).
+    // Filenames as uploaded to the release assets (spaces are NOT OK; we URL-encode them).
     const installers = {
-      en: "pyIDE v1.2.0 - EN.exe",
-      ar: "pyIDE v1.2.0 - AR.exe",
-      fr: "pyIDE v1.2.0 - FR.exe",
-      de: "pyIDE v1.2.0 - DE.exe",
-      he: "pyIDE v1.2.0 - HE.exe",
-      it: "pyIDE v1.2.0 - IT.exe",
-      ja: "pyIDE v1.2.0 - JA.exe",
-      ko: "pyIDE v1.2.0 - KO.exe",
-      pl: "pyIDE v1.2.0 - PL.exe",
-      pt: "pyIDE v1.2.0 - PT.exe",
-      ru: "pyIDE v1.2.0 - RU.exe",
-      es: "pyIDE v1.2.0 - ES.exe",
-      tr: "pyIDE v1.2.0 - TR.exe",
+      en: "pyIDE.v1.2.0.-.EN.exe",
+      ar: "pyIDE.v1.2.0.-.AR.exe",
+      fr: "pyIDE.v1.2.0.-.FR.exe",
+      de: "pyIDE.v1.2.0.-.DE.exe",
+      he: "pyIDE.v1.2.0.-.HE.exe",
+      it: "pyIDE.v1.2.0.-.IT.exe",
+      ja: "pyIDE.v1.2.0.-.JA.exe",
+      ko: "pyIDE.v1.2.0.-.KO.exe",
+      pl: "pyIDE.v1.2.0.-.PL.exe",
+      pt: "pyIDE.v1.2.0.-.PT.exe",
+      ru: "pyIDE.v1.2.0.-.RU.exe",
+      es: "pyIDE.v1.2.0.-.ES.exe",
+      tr: "pyIDE.v1.2.0.-.TR.exe",
     };
 
     const rtlLangs = new Set(["ar", "he"]);
